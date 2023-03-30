@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
                         // Carga la imagen utilizando Glide
                         //Glide.with(this).load(imageUrl).into(portada);
 
-                        // Actualiza las vistas con los datos obtenidos
+                        // Aactualiza las vistas con los datos obtenidos
                         titulo.setText(title);
                         //fecha_lanzamiento.setText(releaseDate);
 
