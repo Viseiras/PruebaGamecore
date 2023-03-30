@@ -1,58 +1,90 @@
 package com.example.pruebagamecore;
 
+import android.os.Bundle;
+import android.widget.ImageView;
+import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.os.Bundle;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.bumptech.glide.Glide;
 
-import java.io.IOException;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class MainActivity extends AppCompatActivity {
+
+    private TextView titulo;
+    private TextView fecha_lanzamiento;
+    private ImageView portada;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-    }
 
-    public static void main(String[] args)
-    {
+        // Inicializa las vistas
+        titulo = findViewById(R.id.titulo);
+        fecha_lanzamiento = findViewById(R.id.fecha_lanzamiento);
+        portada = findViewById(R.id.portada);
+
+        // Crea una nueva cola de solicitudes
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "https://api.rawg.io/api/games/3498?key=[TU_API_KEY]";
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+        // Define la URL de la solicitud
+        String url = "https://api.igdb.com/v4/games/?search=Final%20Fantasy%20XV&fields=name,release_dates&limit=1";
 
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        // Analiza la respuesta JSON y extrae los datos que necesitas
-                        String title = response.getString("name");
-                        String imageUrl = response.getJSONObject("background_image").getString("original");
+        // Crea una solicitud GET para la URL
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
+                Request.Method.GET,
+                url,
+                null,
+                response -> {
+                    try {
+                        // Extrae los datos de la respuesta JSON
+                        JSONObject game = response.getJSONObject(0);
+                        String title = game.getString("name");
+                        //String releaseDate = game.getJSONObject("release_dates").getJSONObject("0").getString("human");
+                        //String imageUrl = "https://" + game.getJSONObject("cover").getString("url").replace("thumb", "cover_big");
 
-                        // Usa Glide para cargar la imagen en una ImageView
-                        ImageView imageView = findViewById(R.id.imageView);
-                        Glide.with(MainActivity.this).load(imageUrl).into(imageView);
+                        // Carga la imagen utilizando Glide
+                        //Glide.with(this).load(imageUrl).into(portada);
 
-                        // Actualiza la vista con el título del juego
-                        TextView textView = findViewById(R.id.textView);
-                        textView.setText(title);
+                        // Actualiza las vistas con los datos obtenidos
+                        titulo.setText(title);
+                        //fecha_lanzamiento.setText(releaseDate);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                }, new Response.ErrorListener() {
+                },
+                error -> {
+                    // Maneja errores de la solicitud
+                    error.printStackTrace();
 
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // Maneja errores de la solicitud
-                    }
-                });
+                }) {
+            // Agrega el encabezado "user-key" con tu clave de API
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Client-ID", "83m6yfw5tii03bjg1dtii0ski4tw9y");
+                headers.put("Authorization", "Bearer k6kqk0gh55wwr4xsikgj1c44op31ej");
+                headers.put("Content-Type", "application/json");
+                return headers;
+            }
+        };
 
-        queue.add(jsonObjectRequest);
+// Agrega la solicitud a la cola
+        queue.add(jsonArrayRequest);
+
     }
-
-
-
-
-
 }
+
