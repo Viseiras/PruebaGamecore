@@ -16,6 +16,8 @@ import com.bumptech.glide.Glide;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         RequestQueue queue = Volley.newRequestQueue(this);
 
         // Define la URL de la solicitud
-        String url = "https://api.igdb.com/v4/games/?search=Final%20Fantasy%20XV&fields=name,release_dates&limit=1";
+        String url = "https://api.igdb.com/v4/games/?search=Final%20Fantasy%20XV&fields=name,cover,first_release_date&limit=1";
 
         // Crea una solicitud GET para la URL
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
@@ -49,29 +51,42 @@ public class MainActivity extends AppCompatActivity {
                 null,
                 response -> {
                     try {
-                        // Extrae los datos de la respuesta JSON
+                        // OBTENEMOS EL JUEGO COMO JSON
                         JSONObject game = response.getJSONObject(0);
+
+                        //OBTENEMOS EL TITULO
                         String title = game.getString("name");
-                        //String releaseDate = game.getJSONObject("release_dates").getJSONObject("0").getString("human");
-                        //String imageUrl = "https://" + game.getJSONObject("cover").getString("url").replace("thumb", "cover_big");
 
+                        //OBTENEMOS LA FECHA EN FORMATO UNIX Y LA CASTEAMOS A
+                        String fechaUnix = game.getString("first_release_date");
+                        long fechaUnixLong = Long.parseLong(fechaUnix) * 1000; // convertir a milisegundos
+                        Date fecha = new Date(fechaUnixLong);
+                        SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+                        String fechaHumana = format.format(fecha);
+
+                        //OBTENEMOS LA PORTADA
+                        int coverId = game.getInt("cover");
+                        // Construye la URL de la imagen de la portada
+                        String imageUrl = "https://images.igdb.com/igdb/image/upload/t_cover_big/" + coverId + ".jpg";
                         // Carga la imagen utilizando Glide
-                        //Glide.with(this).load(imageUrl).into(portada);
 
-                        // Aaaactualiza las vistas con los datos obtenidos
+
+                        // Actualiza las vistas con los datos obtenidos
                         titulo.setText(title);
-                        //fecha_lanzamiento.setText(releaseDate);
+                        fecha_lanzamiento.setText(fechaHumana);
+                        Glide.with(this).load(imageUrl).into(portada);
 
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+
+
                 },
                 error -> {
                     // Maneja errores de la solicitud
                     error.printStackTrace();
 
                 }) {
-            // Agrega el encabezado "user-key" con tu clave de API
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
