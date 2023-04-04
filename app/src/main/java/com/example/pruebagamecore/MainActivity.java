@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView titulo;
     private TextView fecha_lanzamiento;
     private ImageView portada;
+    private int coverId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         RequestQueue queue = Volley.newRequestQueue(this);
 
         // Define la URL de la solicitud
-        String url = "https://api.igdb.com/v4/games/?search=Final%20Fantasy%20XV&fields=name,cover,first_release_date&limit=1";
+        String url = "https://api.igdb.com/v4/games/?search=Persona%205%20Royal&fields=name,cover.url,first_release_date&limit=1";
 
         // Crea una solicitud GET para la URL
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
@@ -53,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         // OBTENEMOS EL JUEGO COMO JSON
                         JSONObject game = response.getJSONObject(0);
-
                         //OBTENEMOS EL TITULO
                         String title = game.getString("name");
 
@@ -64,26 +64,24 @@ public class MainActivity extends AppCompatActivity {
                         SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
                         String fechaHumana = format.format(fecha);
 
-                        //OBTENEMOS LA PORTADA
-                        int coverId = game.getInt("cover");
-                        // Construye la URL de la imagen de la portada
-                        String imageUrl = "https://images.igdb.com/igdb/image/upload/t_cover_big/" + coverId + ".jpg";
-                        // Carga la imagen utilizando Glide
-
-
                         // Actualiza las vistas con los datos obtenidos
                         titulo.setText(title);
                         fecha_lanzamiento.setText(fechaHumana);
-                        Glide.with(this).load(imageUrl).into(portada);
+
+                        // Obtiene la URL de la imagen de la cubierta del juego
+                        JSONObject cover = game.getJSONObject("cover");
+                        String imageUrl = cover.getString("url");
+
+                        // Carga la imagen utilizando Glide
+                        Glide.with(this).load("https:" + imageUrl).into(portada);
+
 
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
 
-
                 },
                 error -> {
-                    // Maneja errores de la solicitud
                     error.printStackTrace();
 
                 }) {
@@ -92,7 +90,6 @@ public class MainActivity extends AppCompatActivity {
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Client-ID", "83m6yfw5tii03bjg1dtii0ski4tw9y");
                 headers.put("Authorization", "Bearer k6kqk0gh55wwr4xsikgj1c44op31ej");
-                headers.put("Content-Type", "application/json");
                 return headers;
             }
         };
